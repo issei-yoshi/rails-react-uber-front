@@ -2,6 +2,7 @@
 - データを持つComponentはcontainers/に置く
 - データを持たないPresentational Componentはcomponents/に置く
 - APIを呼ぶための関数はsrc/apis/にファイルを分けて置く
+- APIに関するロジック、stateはsrc/reducersにファイルを分けて置く
 
 
 # Getting Started with Create React App
