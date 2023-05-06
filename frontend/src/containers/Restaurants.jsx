@@ -1,8 +1,15 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useReducer } from 'react'
 import styled from 'styled-components'
 
 // API関数
 import { fetchRestaurants } from '../apis/restaurants'
+
+// Reducers
+import {
+  initialState,
+  restaurantsActionTypes,
+  restaurantsReducer,
+} from '../reducers/restaurants'
 
 // Images
 import MainLogo from '../images/logo.png'
@@ -55,12 +62,26 @@ const SubText = styled.p`
 
 // ここからFunctional-Component
 export const Restaurants = () => {
+  // useReducerを用いてstateを管理, importしたrestaurantsReducer関数を第一引数に渡す
+  const [state, dispatch] = useReducer(restaurantsReducer, initialState)
 
   // 初回レンダリング時にfetchRestaurantsというAPI関数を実行するようuseEffectを使う
   useEffect(() => {
+    // 最初にレンダリングした段階でtypeにFETCHINGを指定する
+    // そうすることでrestaurantsReducer関数のcase文に割り振られるようにする
+    dispatch({ type: restaurantsActionTypes.FETCHING })
     fetchRestaurants()
     .then((data) =>
-      console.log(data)
+      // 成功したタイミングでtypeにFETCH_SUCCESSを指定
+      // そうすることでrestaurantsReducer関数のcase文に割り振られるようにする
+      // と同時にpayloadのrestaurants内に取得したdataを渡す
+      // そうするとdispatchはreducerを通じて間接的にstateを変更させる
+      dispatch({
+        type: restaurantsActionTypes.FETCH_SUCCESS,
+        payload: {
+          restaurants: data.restaurants
+        }
+      })
     )
   }, [])
 
@@ -73,6 +94,15 @@ export const Restaurants = () => {
       <MainCoverImageWrapper>
         <MainCover src={MainCoverImage} alt="main cover" />
       </MainCoverImageWrapper>
+      {
+        // dispatchがreducerを通じて間接的にstateの値を変更することで
+        // state内のrestaurantsListにAPIで取得したdataが入り、展開可能となる
+        state.restaurantsList.map(restaurant =>
+          <div key={restaurant.id}>
+            {restaurant.name}
+          </div>
+        )
+      }
     </>
   )
 }
