@@ -1,4 +1,4 @@
-import { Axios } from "axios";
+import axios from "axios";
 
 // 定数として定義したrestaurantsへのURLをimport
 import { restaurantsIndex } from "../urls";
