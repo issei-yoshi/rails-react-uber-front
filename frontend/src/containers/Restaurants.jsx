@@ -1,5 +1,9 @@
 import React, { useEffect, useReducer } from 'react'
 import styled from 'styled-components'
+import { Link } from 'react-router-dom'
+
+// Material-UI Components
+import { Skeleton } from '@mui/material'
 
 // API関数
 import { fetchRestaurants } from '../apis/restaurants'
@@ -11,9 +15,13 @@ import {
   restaurantsReducer,
 } from '../reducers/restaurants'
 
+// constants(APIリクエストに関して必要な定数)
+import { REQUEST_STATE } from '../constants'
+
 // Images
 import MainLogo from '../images/logo.png'
 import MainCoverImage from '../images/main-cover-image.png'
+import RestaurantImage from '../images/restaurant-image.jpg'
 
 // Styled-Component
 const HeaderWrapper = styled.div`
@@ -94,15 +102,32 @@ export const Restaurants = () => {
       <MainCoverImageWrapper>
         <MainCover src={MainCoverImage} alt="main cover" />
       </MainCoverImageWrapper>
-      {
-        // dispatchがreducerを通じて間接的にstateの値を変更することで
-        // state内のrestaurantsListにAPIで取得したdataが入り、展開可能となる
-        state.restaurantsList.map(restaurant =>
-          <div key={restaurant.id}>
-            {restaurant.name}
-          </div>
-        )
-      }
+
+      <RestaurantsContentsList>
+        {
+          // stateのfetchStateがLOADINGの場合（API取得中の場合）trueには以下を表示
+          // fetchStateをLOADINGにしているのはuseEffectの一番最初部分、ここでstateのfetchStateを間接的に指定している
+          state.fetchState === REQUEST_STATE.LOADING ?
+            <>
+              <Skeleton variant='rect' width={450} height={300} />
+              <Skeleton variant='rect' width={450} height={300} />
+              <Skeleton variant='rect' width={450} height={300} />
+            </>
+          :
+            // falseの場合には以下を表示
+            // dispatchがreducerを通じて間接的にstateの値を変更することで
+            // state内のrestaurantsListにAPIで取得したdataが入り、展開可能となる
+            state.restaurantsList.map((item, index) =>
+              <Link to={`/restaurants/${item.id}/foods`} key={index} style={{ textDecoration: 'none' }} >
+                <RestaurantsContentWrapper>
+                  <RestaurantsImageNode src={RestaurantImage} />
+                  <MainText>{item.name}</MainText>
+                  <SubText>{`配送料：${item.fee}円 ${item.time_required}分`}</SubText>
+                </RestaurantsContentWrapper>
+              </Link>
+            )
+        }
+      </RestaurantsContentsList>
     </>
   )
 }
