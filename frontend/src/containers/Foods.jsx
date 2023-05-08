@@ -7,6 +7,7 @@ import { Skeleton } from '@mui/material';
 // components
 import { LocalMallIcon } from '../components/Icons';
 import { FoodWrapper } from '../components/FoodWrapper';
+import { FoodOrderDialog } from '../components/FoodOrderDialog';
 
 // Reducers
 import {
@@ -141,6 +142,19 @@ export const Foods = () => {
         )
       }
       </FoodsList>
+      {
+        // state.isOpenOrderDialogがtrueの場合にはFoodOrderDialogを描画するよう記載
+        state.isOpenOrderDialog &&
+        <FoodOrderDialog
+          food={state.selectedFood}
+          isOpen={state.isOpenOrderDialog}
+          // DialogのonCloseというpropsには実行してほしい関数を渡す必要がある
+          onClose={() => setState({
+            ...state,
+            isOpenOrderDialog: false,
+          })}
+        />
+      }
     </>
   )
 }
