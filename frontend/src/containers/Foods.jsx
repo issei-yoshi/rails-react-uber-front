@@ -96,6 +96,10 @@ export const Foods = () => {
     )
   }, [])
 
+  const submitOrder = () => {
+    console.log('登録ボタンが押された')
+  }
+
   return (
     <>
       <HeaderWrapper>
@@ -145,15 +149,33 @@ export const Foods = () => {
       {
         // state.isOpenOrderDialogがtrueの場合にはFoodOrderDialogを描画するよう記載
         state.isOpenOrderDialog &&
-        <FoodOrderDialog
-          food={state.selectedFood}
-          isOpen={state.isOpenOrderDialog}
-          // DialogのonCloseというpropsには実行してほしい関数を渡す必要がある
-          onClose={() => setState({
-            ...state,
-            isOpenOrderDialog: false,
-          })}
-        />
+          <FoodOrderDialog
+            // 現在クリックされているfoodをpropsとして渡す
+            food={state.selectedFood}
+            // stateのisOpenOrderDialogというbooleanの値を渡す
+            isOpen={state.isOpenOrderDialog}
+            // DialogのonCloseというpropsには実行してほしい関数を渡す必要がある
+            onClose={() => setState({
+              ...state,
+              isOpenOrderDialog: false,
+              selectedFood: null,
+              selectedFoodCount: 1,
+            })}
+            // stateのselectedFoodCountがいくつあるかをpropsとして渡す
+            countNumber={state.selectedFoodCount}
+            // selectedFoodCountの値を+1するsetStateという更新関数をpropsとして渡す
+            onClickCountUp={() => setState({
+              ...state,
+              selectedFoodCount: state.selectedFoodCount + 1,
+            })}
+            // selectedFoodCountの値を-1するsetStateという更新関数をpropsとして渡す
+            onClickCountDown={() => setState({
+              ...state,
+              selectedFoodCount: state.selectedFoodCount - 1,
+            })}
+            // 後ほど定義するが、orderボタンをクリックしたときに発火されるsubmitOrder関数をpropsとして渡す
+            onClickOrder={() => submitOrder()}
+          />
       }
     </>
   )

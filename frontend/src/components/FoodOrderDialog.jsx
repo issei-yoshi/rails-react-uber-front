@@ -2,13 +2,12 @@ import React from 'react'
 import { DialogContent, Dialog, DialogTitle, DialogActions } from '@mui/material'
 import styled from 'styled-components'
 
-// components
 import { SubText } from './StyledText'
-
-// images
+import { CountUpButton } from './Buttons/CountUpButton';
+import { CountDownButton } from './Buttons/CountDownButton';
+import { OrderButton } from './Buttons/OrderButton';
 import OrderHeaderImage from '../images/order-header.png'
 
-// styled-components
 const OrderHeader = styled.img`
   width: 100%;
   height: 350px;
@@ -47,10 +46,12 @@ const PriceWrapper = styled.div`
 
 export const FoodOrderDialog = ({
   food,
-  // 開くか閉じるかのpropsをbooleanで受け取る
+  countNumber,
   isOpen,
-  // モーダルを閉じるために行う関数をpropsとして受け取り実行する
   onClose,
+  onClickCountUp,
+  onClickCountDown,
+  onClickOrder,
 }) => {
   return (
     <Dialog
@@ -69,6 +70,35 @@ export const FoodOrderDialog = ({
         </DescriptionWrapper>
       </DialogContent>
       <DialogActions>
+        <CountersWrapper>
+          <CountItem>
+            <CountDownButton
+              onClick={() => onClickCountDown()}
+              isDisabled={countNumber <= 1}
+            />
+          </CountItem>
+          <CountItem>
+            <CountNum>
+              {countNumber}
+            </CountNum>
+          </CountItem>
+          <CountItem>
+            <CountUpButton
+              onClick={()=> onClickCountUp()}
+              isDisabled={countNumber >= 9}
+            />
+          </CountItem>
+        </CountersWrapper>
+        <OrderButton onClick={() => onClickOrder()}>
+          <OrderTextWrapper>
+            <OrderButtonTextWrapper>
+              {`${countNumber}点を注文に追加`}
+            </OrderButtonTextWrapper>
+            <PriceWrapper>
+              {`¥${countNumber * food.price}`}
+            </PriceWrapper>
+          </OrderTextWrapper>
+        </OrderButton>
       </DialogActions>
     </Dialog>
   )
