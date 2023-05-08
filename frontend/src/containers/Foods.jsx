@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer } from 'react'
+import React, { useEffect, useReducer, useState } from 'react'
 import styled from 'styled-components';
 import { useParams } from 'react-router-dom'
 import { Link } from "react-router-dom";
@@ -64,6 +64,16 @@ export const Foods = () => {
   // useReducerを用いてstateを管理、importしたfoodsReducer関数を第一引数に渡す
   const [foodsState, dispatch] = useReducer(foodsReducer, foodsInitialState);
 
+  // useState用（ダイアログで使う）のStateの初期値を定義
+  const initialState = {
+    isOpenOrderDialog: false,
+    selectedFood: null,
+    selectedFoodCount: 1,
+  }
+
+  // useStateでstateを管理するよう定義
+  const [state, setState] = useState(initialState);
+
   // useEffectを用いて初回レンダリング時にfetchFoodsというAPI関数を実行するよう実装
   useEffect(() => {
     // 最初にレンダリングした段階でtypeにFETCHINGを指定する
@@ -117,7 +127,14 @@ export const Foods = () => {
           <ItemWrapper key={food.id}>
             <FoodWrapper
               food={food}
-              onClickFoodWrapper={(food) => console.log(food)}
+              onClickFoodWrapper={
+                // FoodWrapperに渡すprops内(onClickに仕込まれていてitemをクリックする所)でstateの値を変更するように記載
+                (food) => setState({
+                  ...state,
+                  isOpenOrderDialog: true,
+                  selectedFood: food,
+                })
+              }
               imageUrl={FoodImage}
             />
           </ItemWrapper>
