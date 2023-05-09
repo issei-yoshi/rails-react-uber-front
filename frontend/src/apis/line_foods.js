@@ -41,3 +41,12 @@ export const replaceLineFoods = (params) => {
   })
   .catch((e) => { throw e; })
 };
+
+// /line_foodsにGETリクエストを投げるAPI関数を定義
+export const fetchLineFoods = () => {
+  return axios.get(lineFoods)
+  .then(res => {
+    return res.data
+  })
+  .catch((e) => { throw e; })
+};
