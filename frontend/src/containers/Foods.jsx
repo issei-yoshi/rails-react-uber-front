@@ -1,13 +1,14 @@
 import React, { useEffect, useReducer, useState } from 'react'
 import styled from 'styled-components';
 import { useParams } from 'react-router-dom'
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Skeleton } from '@mui/material';
 
 // components
 import { LocalMallIcon } from '../components/Icons';
 import { FoodWrapper } from '../components/FoodWrapper';
 import { FoodOrderDialog } from '../components/FoodOrderDialog';
+import { NewOrderConfirmDialog } from '../components/NewOrderConfirmDialog';
 
 // Reducers
 import {
@@ -18,10 +19,12 @@ import {
 
 // API関数
 import { fetchFoods } from '../apis/foods';
+import { postLineFoods, replaceLineFoods } from '../apis/line_foods';
 
 // constants(APIリクエストに関して必要な定数)
 import { REQUEST_STATE } from '../constants';
 import { COLORS } from '../style_constants';
+import { HTTP_STATUS_CODE } from '../constants';
 
 // images
 import MainLogo from '../images/logo.png';
@@ -70,10 +73,16 @@ export const Foods = () => {
     isOpenOrderDialog: false,
     selectedFood: null,
     selectedFoodCount: 1,
+    isOpenNewOrderDialog: false, //NewOrderConfirmDialogをレンダリングするしないのフラグ
+    existingRestaurantName: "", //NewOrderConfirmDialogで表示するためにpropsで渡したい、元々入っていた店舗名
+    newRestaurantName: "", //NewOrderConfirmDialogで表示するためにpropsで渡したい、新しく入った店舗名
   }
 
   // useStateでstateを管理するよう定義
   const [state, setState] = useState(initialState);
+
+  // useNavigateでページ遷移できるようnavigationを定義
+  const navigation = useNavigate();
 
   // useEffectを用いて初回レンダリング時にfetchFoodsというAPI関数を実行するよう実装
   useEffect(() => {
@@ -96,9 +105,45 @@ export const Foods = () => {
     )
   }, [])
 
+  // 登録ボタンを押した時の関数を定義
   const submitOrder = () => {
-    console.log('登録ボタンが押された')
-  }
+    // importした、APIを叩く関数を実行(axios.post)
+    // パラメーターとしてfoodIdとcountをオブジェクト形式で渡して、関数で受け取れるようにする
+    postLineFoods({
+      foodId: state.selectedFood.id,
+      count: state.selectedFoodCount,
+    })
+    // 成功した場合には/ordersへと遷移するようにする
+    .then(() => navigation('/orders'))
+    // 失敗した場合には例外をキャッチして、レスポンスのステータスが406だった場合にはsetStateという更新用関数を用いてstateを更新
+    // stateを更新することでNewOrderConfirmDialogが描画されるようにする
+    .catch((e) => {
+      if (e.response.status === HTTP_STATUS_CODE.NOT_ACCEPTABLE){
+        setState({
+          ...state,
+          isOpenOrderDialog: false,
+          isOpenNewOrderDialog: true, //登録ボタンを押して406エラーが返ってきたらisOpenNewOrderDialogのstateをtrueにすることで表示させたいコンポーネントを描画できる
+          existingRestaurantName: e.response.data.existing_restaurant, //既に選択されている店舗名, Railsから返却されるデータを元に更新
+          newRestaurantName: e.response.data.new_restaurant, //新しく選択された店舗名, Railsから返却されるデータを元に更新
+        })
+      } else {
+        throw e;
+      }
+    })
+  };
+
+  // NewOrderConfirmDialogコンポーネントのonClickイベントで発火する関数を定義
+  // 今回の場合は、仮注文を置き換えるAPI関数となる
+  const replaceOrder = () => {
+    // importしたAPIを叩く関数を実行(axios.put)
+    // パラメーターとしてfoodIdとcountをオブジェクト形式で渡す
+    replaceLineFoods({
+      foodId: state.selectedFood.id,
+      count: state.selectedFoodCount,
+    })
+    // 成功したら/ordersへと遷移するようにする
+    .then(() => navigation('/orders'))
+  };
 
   return (
     <>
@@ -173,9 +218,27 @@ export const Foods = () => {
               ...state,
               selectedFoodCount: state.selectedFoodCount - 1,
             })}
-            // 後ほど定義するが、orderボタンをクリックしたときに発火されるsubmitOrder関数をpropsとして渡す
+            // orderボタンをクリックしたときに発火されるsubmitOrder関数をpropsとして渡す
             onClickOrder={() => submitOrder()}
           />
+      }
+
+      {
+        // isOpenNewOrderDialogがtrueの時には以下をpropsとして渡して描画する
+        state.isOpenNewOrderDialog &&
+        <NewOrderConfirmDialog
+        // stateのisOpenNewOrderDialogというbooleanの値を渡す
+          isOpen={state.isOpenNewOrderDialog}
+          // DialogのonCloseというpropsには実行してほしい関数を渡す必要がある
+          onClose={() => setState({...state, isOpenNewOrderDialog: false })}
+          // DialogContent内で描画するためにpropsとして渡す
+          existingRestaurantName={state.existingRestaurantName}
+          // DialogContent内で描画するためにpropsとして渡す
+          newRestaurantName={state.newRestaurantName}
+          // ボタンがクリックされた時に発火する関数をpropsとして渡す
+          // 今回は仮注文を置き換えるAPI関数であるreplaceOrderを渡している
+          onClickSubmit={() => replaceOrder()}
+        />
       }
     </>
   )
