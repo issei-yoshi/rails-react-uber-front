@@ -2,6 +2,7 @@ import React, { useEffect, useReducer } from 'react'
 
 // API
 import { fetchLineFoods } from '../apis/line_foods'
+import { postOrder } from '../apis/orders'
 
 // reducers
 import {
@@ -35,6 +36,20 @@ export const Orders = () => {
       )
       .catch((e) => console.error(e));
   }, [])
+
+  const postLineFoods = () => {
+    // 登録するAPIを呼ぶ前段階でローディング状態にstateを更新
+    dispatch({ type: lineFoodsActionTypes.POSTING })
+    // fetchLineFoodsで更新したlineFoodsSummaryのdata内にあるline_food_idsをpostOrder関数の引数として渡す
+    postOrder({
+      line_foods_ids: state.lineFoodsSummary.line_food_ids,
+    }).then(() => {
+      // 成功したら状態を成功に更新
+      dispatch({ type: lineFoodsActionTypes.POST_SUCCESS });
+      // 画面をリロードする
+      window.location.reload();
+    });
+  };
 
   return (
     <div>Orders</div>
